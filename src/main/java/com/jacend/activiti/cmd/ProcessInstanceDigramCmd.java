@@ -1,4 +1,4 @@
-package com.jacend.activiti;
+package com.jacend.activiti.cmd;
 
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.engine.impl.cmd.GetBpmnModelCmd;

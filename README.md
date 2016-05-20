@@ -2,20 +2,19 @@
 Activiti 工作流简单Demo
 ##如何运行
 1. 下载代码
-```
-git clone git@github.com:jacendfeng/startActiviti.git
-```
+
+   ```
+   git clone git@github.com:jacendfeng/startActiviti.git打包运行
+   ```
 
 2. 打包运行
 
-```
-mvn install
-mvn jetty：run
-```
+   ```shell
+   mvn install
+   mvn jetty:run
+   ```
 
-3. 访问网址
-[启动网址](http://localhost:8080/startActiviti/)
-
+3. [启动网址](http://localhost:8080/startActiviti/)
 #版本更新
 V1.0
 * maven 管理依赖

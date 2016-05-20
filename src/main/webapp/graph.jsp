@@ -4,7 +4,7 @@
 <%@ page import="org.activiti.engine.impl.interceptor.Command" %>
 <%@ page import="java.io.InputStream" %>
 <%@ page import="org.activiti.engine.impl.cmd.GetDeploymentProcessDiagramCmd" %>
-<%@ page import="com.jacend.activiti.ProcessInstanceDigramCmd" %>
+<%@ page import="com.jacend.activiti.cmd.ProcessInstanceDigramCmd" %>
 <%@ page import="org.activiti.engine.task.Task" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
