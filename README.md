@@ -5,12 +5,14 @@ Activiti 工作流简单Demo
 ```
 git clone git@github.com:jacendfeng/startActiviti.git
 ```
+
 2. 打包运行
 
 ```
 mvn install
 mvn jetty：run
 ```
+
 3. 访问网址
 [启动网址](http://localhost:8080/startActiviti/)
 
