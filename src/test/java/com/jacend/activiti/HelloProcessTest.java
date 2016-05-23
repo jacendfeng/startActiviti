@@ -91,4 +91,9 @@ public class HelloProcessTest {
         Assert.assertTrue(count > 0);
     }
 
+    @Test
+    public void testForGithubPushInIDEA(){
+        System.out.println("haha");
+    }
+
 }
