@@ -24,6 +24,26 @@ import java.util.Map;
 public class HelloProcessTest {
 
     @Test
+    public void testStartProcess(){
+        ProcessEngine processEngine = ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration().buildProcessEngine();
+
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+        repositoryService.createDeployment().addClasspathResource("diagrams/hello.bpmn").deploy();
+
+        // 如果遇到 file cannot find 请参照 https://forums.activiti.org/content/resource-not-found-exception
+
+        ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
+        Assert.assertEquals("hello", processDefinition.getKey());
+
+        RuntimeService runtimeService = processEngine.getRuntimeService();
+        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("hello");
+        Assert.assertNotNull(processInstance);
+
+        System.out.println("pid=" + processInstance.getId() + ", pdid=" + processInstance.getProcessDefinitionId());
+
+    }
+
+    @Test
     public void addUserTask() throws FileNotFoundException {
         ProcessEngine processEngine = ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration().buildProcessEngine();
 
@@ -69,26 +89,6 @@ public class HelloProcessTest {
         long count = historyService.createHistoricActivityInstanceQuery().finished().count();
         System.out.println(count);
         Assert.assertTrue(count > 0);
-    }
-
-    @Test
-    public void testStartProcess(){
-        ProcessEngine processEngine = ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration().buildProcessEngine();
-
-        RepositoryService repositoryService = processEngine.getRepositoryService();
-        repositoryService.createDeployment().addClasspathResource("diagrams/hello.bpmn").deploy();
-
-        // 如果遇到 file cannot find 请参照 https://forums.activiti.org/content/resource-not-found-exception
-
-        ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
-        Assert.assertEquals("hello", processDefinition.getKey());
-
-        RuntimeService runtimeService = processEngine.getRuntimeService();
-        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("hello");
-        Assert.assertNotNull(processInstance);
-
-        System.out.println("pid=" + processInstance.getId() + ", pdid=" + processInstance.getProcessDefinitionId());
-
     }
 
     @Test
