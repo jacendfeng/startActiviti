@@ -22,11 +22,12 @@
             true 当Activiti 的表不存在时自动创建;当Activiti的jar文件中定义的版本号与数据库中记录的版本号不一致时会自动执行响应的升级脚本,并且会记录升级过程
             create-drop, 创建引擎时执行初始化脚本,引擎销毁时执行删除数据库脚本
         -->
+        <property name="dataSource" ref="dataSource" />
         <property name="databaseSchemaUpdate" value="true" />
         <!--job executor config-->
         <property name="jobExecutorActivate" value="false" />
         <!--用来记录历史的记录, 默认为 audit-->
-        <!--<property name="history" value="full"/>-->
+        <property name="history" value="full"/>
         <!--font 为了让流程图不出现乱码 -->
         <property name="activityFontName" value="宋体"/>
         <property name="labelFontName" value="宋体"/>

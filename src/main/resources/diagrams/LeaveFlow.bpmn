@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:tns="http://www.activiti.org/test" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" expressionLanguage="http://www.w3.org/1999/XPath" id="m1464071267063" name="" targetNamespace="http://www.activiti.org/test" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <process id="leave" isClosed="false" isExecutable="true" name="请假流程-动态表单" processType="None">
+    <startEvent activiti:initiator="applyUserId2" id="_2" name="StartEvent">
+      <extensionElements>
+        <activiti:formProperty datePattern="yyyy-MM-dd" id="startDate" name="请假开始日期" readable="true" required="true" type="date" writable="true"/>
+        <activiti:formProperty datePattern="yyyy-MM-dd" id="endDate" name="请假结束时间" readable="true" required="true" type="date" writable="true"/>
+        <activiti:formProperty id="reason" name="请假原因" readable="true" required="true" type="string" writable="true"/>
+      </extensionElements>
+    </startEvent>
+    <endEvent id="endEvent" name="EndEvent"/>
+    <userTask activiti:candidateGroups="deptLeader" activiti:exclusive="true" id="deptLeaderAudit" name="部门领导审批">
+      <extensionElements>
+        <activiti:formProperty datePattern="yyyy-MM-dd" id="startDate" name="请假开始日期" readable="true" type="date" value="${startDate}" writable="false"/>
+        <activiti:formProperty datePattern="yyyy-MM-dd" id="endDate" name="请假结束时间" readable="true" type="date" value="${endDate}" writable="false"/>
+        <activiti:formProperty id="deptLeaderApproved" name="审批意见" required="true" type="enum" writable="true">
+          <activiti:value id="true" name="同意"/>
+          <activiti:value id="false" name="拒绝"/>
+        </activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway gatewayDirection="Unspecified" id="_5" name="ExclusiveGateway"/>
+    <userTask activiti:candidateGroups="hr" activiti:exclusive="true" id="deptHrAudit" name="人事审批">
+      <extensionElements>
+        <activiti:formProperty id="hrApproved" name="审批意见" required="true" type="enum" writable="true">
+          <activiti:value id="true" name="同意"/>
+          <activiti:value id="false" name="拒绝"/>
+        </activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway gatewayDirection="Unspecified" id="_7" name="ExclusiveGateway"/>
+    <sequenceFlow id="_8" sourceRef="_2" targetRef="deptLeaderAudit"/>
+    <sequenceFlow id="_9" sourceRef="deptLeaderAudit" targetRef="_5"/>
+    <sequenceFlow id="_10" name="同意" sourceRef="_5" targetRef="deptHrAudit">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${deptLeaderApproved== 'true'}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask activiti:assignee="${applyUserId2}" activiti:exclusive="true" id="modifyApply" name="调整申请">
+      <extensionElements>
+        <activiti:formProperty datePattern="yyyy-MM-dd" id="startDate" name="请假开始时间" readable="true" required="true" type="date" value="${startDate}" writable="true"/>
+        <activiti:formProperty datePattern="yyyy-MM-dd" id="endDate" name="请假结束时间" readable="true" required="true" type="date" value="${endDate}" writable="true"/>
+        <activiti:formProperty id="reason" name="请假原因" readable="true" required="true" type="string" value="${reason}" writable="true"/>
+        <activiti:formProperty id="reApply" name="重新申请" required="true" type="enum" writable="true">
+          <activiti:value id="true" name="重新申请"/>
+          <activiti:value id="false" name="取消申请"/>
+        </activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="_12" name="拒绝" sourceRef="_5" targetRef="modifyApply">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${deptLeaderApproved== 'false'}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway gatewayDirection="Unspecified" id="_13" name="ExclusiveGateway"/>
+    <sequenceFlow id="_14" sourceRef="modifyApply" targetRef="_13"/>
+    <sequenceFlow id="_15" name="重新申请" sourceRef="_13" targetRef="deptLeaderAudit">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${reApply == 'true'}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask activiti:assignee="${applyUserId2}" activiti:exclusive="true" id="reportBack" name="销假">
+      <extensionElements>
+        <activiti:formProperty datePattern="yyyy-MM-dd" default="${endDate}" id="reportBackDate" name="销假日期" readable="true" required="true" type="date" writable="true"/>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="_17" sourceRef="deptHrAudit" targetRef="_7"/>
+    <sequenceFlow id="_18" name="同意" sourceRef="_7" targetRef="reportBack"/>
+    <sequenceFlow id="_19" name="销假" sourceRef="reportBack" targetRef="endEvent">
+      <extensionElements>
+        <activiti:executionListener event="take" expression="${execution.setVariable('result','ok')}"/>
+      </extensionElements>
+    </sequenceFlow>
+    <sequenceFlow id="_20" name="拒绝" sourceRef="_7" targetRef="modifyApply"/>
+    <sequenceFlow id="_21" name="结束流程" sourceRef="_13" targetRef="endEvent">
+      <extensionElements>
+        <activiti:executionListener event="end" expression="${execution.setVariable('result','canceled')}"/>
+      </extensionElements>
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${reApply == 'false'}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram documentation="background=#3C3F41;count=1;horizontalcount=1;orientation=0;width=842.4;height=1195.2;imageableWidth=832.4;imageableHeight=1185.2;imageableX=5.0;imageableY=5.0" id="Diagram-_1" name="New Diagram">
+    <bpmndi:BPMNPlane bpmnElement="leave">
+      <bpmndi:BPMNShape bpmnElement="_2" id="Shape-_2">
+        <omgdc:Bounds height="32.0" width="32.0" x="70.0" y="95.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endEvent" id="Shape-endEvent">
+        <omgdc:Bounds height="32.0" width="32.0" x="495.0" y="595.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="deptLeaderAudit" id="Shape-deptLeaderAudit">
+        <omgdc:Bounds height="55.0" width="85.0" x="135.0" y="145.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="55.0" width="85.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_5" id="Shape-_5" isMarkerVisible="false">
+        <omgdc:Bounds height="32.0" width="32.0" x="160.0" y="255.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="deptHrAudit" id="Shape-deptHrAudit">
+        <omgdc:Bounds height="55.0" width="85.0" x="135.0" y="355.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="55.0" width="85.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_7" id="Shape-_7" isMarkerVisible="false">
+        <omgdc:Bounds height="32.0" width="32.0" x="160.0" y="480.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="modifyApply" id="Shape-modifyApply">
+        <omgdc:Bounds height="55.0" width="85.0" x="325.0" y="350.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="55.0" width="85.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_13" id="Shape-_13" isMarkerVisible="false">
+        <omgdc:Bounds height="32.0" width="32.0" x="495.0" y="155.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="reportBack" id="Shape-reportBack">
+        <omgdc:Bounds height="55.0" width="85.0" x="135.0" y="585.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="55.0" width="85.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_12" id="BPMNEdge__12" sourceElement="_5" targetElement="modifyApply">
+        <omgdi:waypoint x="192.0" y="271.0"/>
+        <omgdi:waypoint x="325.0" y="377.5"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_15" id="BPMNEdge__15" sourceElement="_13" targetElement="deptLeaderAudit">
+        <omgdi:waypoint x="495.0" y="171.0"/>
+        <omgdi:waypoint x="220.0" y="172.5"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_14" id="BPMNEdge__14" sourceElement="modifyApply" targetElement="_13">
+        <omgdi:waypoint x="410.0" y="377.5"/>
+        <omgdi:waypoint x="495.0" y="171.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_17" id="BPMNEdge__17" sourceElement="deptHrAudit" targetElement="_7">
+        <omgdi:waypoint x="176.0" y="410.0"/>
+        <omgdi:waypoint x="176.0" y="480.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_19" id="BPMNEdge__19" sourceElement="reportBack" targetElement="endEvent">
+        <omgdi:waypoint x="220.0" y="612.5"/>
+        <omgdi:waypoint x="495.0" y="611.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_18" id="BPMNEdge__18" sourceElement="_7" targetElement="reportBack">
+        <omgdi:waypoint x="176.0" y="512.0"/>
+        <omgdi:waypoint x="176.0" y="585.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_8" id="BPMNEdge__8" sourceElement="_2" targetElement="deptLeaderAudit">
+        <omgdi:waypoint x="102.0" y="111.0"/>
+        <omgdi:waypoint x="135.0" y="172.5"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_9" id="BPMNEdge__9" sourceElement="deptLeaderAudit" targetElement="_5">
+        <omgdi:waypoint x="176.0" y="200.0"/>
+        <omgdi:waypoint x="176.0" y="255.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_20" id="BPMNEdge__20" sourceElement="_7" targetElement="modifyApply">
+        <omgdi:waypoint x="192.0" y="496.0"/>
+        <omgdi:waypoint x="325.0" y="377.5"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_10" id="BPMNEdge__10" sourceElement="_5" targetElement="deptHrAudit">
+        <omgdi:waypoint x="176.0" y="287.0"/>
+        <omgdi:waypoint x="176.0" y="355.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_21" id="BPMNEdge__21" sourceElement="_13" targetElement="endEvent">
+        <omgdi:waypoint x="511.0" y="187.0"/>
+        <omgdi:waypoint x="511.0" y="595.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
